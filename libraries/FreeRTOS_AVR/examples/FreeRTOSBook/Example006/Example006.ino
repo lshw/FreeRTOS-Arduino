@@ -54,13 +54,11 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The task functions. */
+/* 任务函数. */
 void vContinuousProcessingTask( void *pvParameters );
 void vPeriodicTask( void *pvParameters );
 
-/* Define the strings that will be passed in as the task parameters.  These are
-defined const and off the stack to ensure they remain valid when the tasks are
-executing. */
+/* 定义传递给任务的参数， 要定义为const模式,不使用堆栈，以便任务能够正确的运行。*/
 const char *pcTextForTask1 = "Continuous task 1 running\r\n";
 const char *pcTextForTask2 = "Continuous task 2 running\r\n";
 const char *pcTextForPeriodicTask = "Periodic task is running\r\n";
@@ -70,14 +68,15 @@ const char *pcTextForPeriodicTask = "Periodic task is running\r\n";
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create two instances of the continuous processing task, both at priority 1. */
+  /* Create two instances of the continuous processing task, both at priority 1.
+     建立2个连续任务，优先级都是1 */
   xTaskCreate( vContinuousProcessingTask, "Task 1", 200, (void*)pcTextForTask1, 1, NULL );
   xTaskCreate( vContinuousProcessingTask, "Task 2", 200, (void*)pcTextForTask2, 1, NULL );
 
-  /* Create one instance of the periodic task at priority 2. */
+  /* 建立1个周期任务 优先级2. */
   xTaskCreate( vPeriodicTask, "Task 3", 200, (void*)pcTextForPeriodicTask, 2, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 开始任务调度. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -89,15 +88,13 @@ void vContinuousProcessingTask( void *pvParameters )
 {
 char *pcTaskName;
 
-  /* The string to print out is passed in via the parameter.  Cast this to a
-  character pointer. */
+  /* 参数转换成字符串指针. */
   pcTaskName = ( char * ) pvParameters;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 无限循环. */
   for( ;; )
   {
-    /* Print out the name of this task.  This task just does this repeatedly
-    without ever blocking or delaying. */
+    /* 持续打印任务名. */
     vPrintString( pcTaskName );
   }
 }
@@ -107,19 +104,21 @@ void vPeriodicTask( void *pvParameters )
 {
 TickType_t xLastWakeTime;
 
-  /* The xLastWakeTime variable needs to be initialized with the current tick
+  /*  xLastWakeTime 变量需要用当前tick计数值进行初始化，我们只需要在这里访问这个变量一次，
+以后将由API函数 vTaskDelayUntil（）自动管理
+  The xLastWakeTime variable needs to be initialized with the current tick
   count.  Note that this is the only time we access this variable.  From this
   point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
   API function. */
   xLastWakeTime = xTaskGetTickCount();
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 无限循环. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /* 打印字符串. */
     vPrintString( "Periodic task is running\r\n" );
 
-    /* We want this task to execute exactly every 500 milliseconds. */
+    /* 500ms延迟. */
     vTaskDelayUntil( &xLastWakeTime, ( 500 / portTICK_PERIOD_MS ) );
   }
 }

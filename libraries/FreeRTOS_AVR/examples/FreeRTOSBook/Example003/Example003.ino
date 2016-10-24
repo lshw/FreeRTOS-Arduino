@@ -55,15 +55,13 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* Used as a loop counter to create a very crude delay. */
+/* 使用loop计数， 建立一个粗略的延迟 . */
 #define mainDELAY_LOOP_COUNT    400000 //( 0xffffff )
 
-/* The task function. */
+/* 任务函数. */
 void vTaskFunction( void *pvParameters );
 
-/* Define the strings that will be passed in as the task parameters.  These are
-defined const and off the stack to ensure they remain valid when the tasks are
-executing. */
+/* 定义传递给任务的参数， 要定义为const模式,不使用堆栈，以便任务能够正确的运行。 */
 const char *pcTextForTask1 = "Task 1 is running\r\n";
 const char *pcTextForTask2 = "Task 2 is running\t\n";
 
@@ -72,14 +70,13 @@ const char *pcTextForTask2 = "Task 2 is running\t\n";
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create the first task at priority 1... */
+  /* 建立第一个任务，优先级=1... */
   xTaskCreate( vTaskFunction, "Task 1", 200, (void*)pcTextForTask1, 1, NULL );
 
-  /* ... and the second task at priority 2.  The priority is the second to
-  last parameter. */
+  /* ..第二个任务，优先级=2.  优先级是倒数第二个参数. */
   xTaskCreate( vTaskFunction, "Task 2", 200, (void*)pcTextForTask2, 2, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+    /* 启动调度程序，使我们的任务开始执行. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -92,22 +89,19 @@ void vTaskFunction( void *pvParameters )
 char *pcTaskName;
 volatile unsigned long ul;
 
-  /* The string to print out is passed in via the parameter.  Cast this to a
-  character pointer. */
+  /*要打印的字符串通过参数传入。 把这个转换成字符指针。. */
   pcTaskName = ( char * ) pvParameters;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+    /* 大部分的任务是无限循环的. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /*  打印出任务名字. */
     vPrintString( pcTaskName );
 
-    /* Delay for a period. */
+    /* 延迟一会儿. */
     for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
     {
-      /* This loop is just a very crude delay implementation.  There is
-      nothing to do in here.  Later exercises will replace this crude
-      loop with a proper delay/sleep function. */
+      /* 一个简单的循环， 以后，我们将用 delay/sleep 来实现. */
     }
   }
 }

@@ -54,15 +54,14 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The task function. */
+/* 任务函数. */
 void vTaskFunction( void *pvParameters );
 
-/* A variable that is incremented by the idle task hook function. */
+/* 全局变量，在任务中自动增一. 
+A variable that is incremented by the idle task hook function. */
 volatile unsigned long ulIdleCycleCount = 0UL;
 
-/* Define the strings that will be passed in as the task parameters.  These are
-defined const and off the stack to ensure they remain valid when the tasks are
-executing. */
+/* 定义传递给任务的参数， 要定义为const模式,不使用堆栈，以便任务能够正确的运行。 */
 const char *pcTextForTask1 = "Task 1 is running\r\n";
 const char *pcTextForTask2 = "Task 2 is running\t\n";
 
@@ -71,14 +70,13 @@ const char *pcTextForTask2 = "Task 2 is running\t\n";
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create the first task at priority 1... */
+  /* 建立第一个任务 优先级= 1... */
   xTaskCreate( vTaskFunction, "Task 1", 200, (void*)pcTextForTask1, 1, NULL );
 
-  /* ... and the second task at priority 2.  The priority is the second to
-  last parameter. */
+  /* 建立第二个任务 优先级=2 */
   xTaskCreate( vTaskFunction, "Task 2", 200, (void*)pcTextForTask2, 2, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 开始任务调度. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -90,31 +88,31 @@ void vTaskFunction( void *pvParameters )
 {
 char *pcTaskName;
 
-  /* The string to print out is passed in via the parameter.  Cast this to a
-  character pointer. */
+  /* 转换为字符串指针. */
   pcTaskName = ( char * ) pvParameters;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 无限循环. */
   for( ;; )
   {
-    /* Print out the name of this task AND the number of times ulIdleCycleCount
+    /* 打印出此任务的名称和ulIdleCycleCount被自动加1的次数
+        Print out the name of this task AND the number of times ulIdleCycleCount
         has been incremented. */
     vPrintStringAndNumber( pcTaskName, ulIdleCycleCount );
 
-    /* Delay for a period.  This time we use a call to vTaskDelay() which
-    puts the task into the Blocked state until the delay period has expired.
-    The delay period is specified in 'ticks'. */
+    /* 250ms延迟. */
     vTaskDelay( 250 / portTICK_PERIOD_MS );
   }
 }
 /*-----------------------------------------------------------*/
 
-/* Idle hook functions MUST be called vApplicationIdleHook(), take no parameters,
+/* 
+   Idle 钩子回调函数， 必须命名为 vApplicationIdleHook()，无参数，无返回
+  Idle hook functions MUST be called vApplicationIdleHook(), take no parameters,
 and return void. */
 extern "C"{ // FreeRTOS expects C linkage
   void vApplicationIdleHook( void )
   {
-    /* This hook function does nothing but increment a counter. */
+    /* 钩子回调函数， 每次给变量加1. */
     ulIdleCycleCount++;
   }
 }

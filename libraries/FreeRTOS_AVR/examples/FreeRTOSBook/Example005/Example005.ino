@@ -54,12 +54,10 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The task function. */
+/* The 任务函数. */
 void vTaskFunction( void *pvParameters );
 
-/* Define the strings that will be passed in as the task parameters.  These are
-defined const and off the stack to ensure they remain valid when the tasks are
-executing. */
+/* 定义传递给任务的参数， 要定义为const模式,不使用堆栈，以便任务能够正确的运行。 */
 const char *pcTextForTask1 = "Task 1 is running\r\n";
 const char *pcTextForTask2 = "Task 2 is running\t\n";
 
@@ -68,14 +66,13 @@ const char *pcTextForTask2 = "Task 2 is running\t\n";
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create the first task at priority 1... */
+  /* 建立第一个任务 优先级=1... */
   xTaskCreate( vTaskFunction, "Task 1", 200, (void*)pcTextForTask1, 1, NULL );
 
-  /* ... and the second task at priority 2.  The priority is the second to
-  last parameter. */
+  /* 建立第二个任务，优先级=2. */
   xTaskCreate( vTaskFunction, "Task 2", 200, (void*)pcTextForTask2, 2, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 开始运行调度程序. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -88,27 +85,34 @@ void vTaskFunction( void *pvParameters )
 char *pcTaskName;
 TickType_t xLastWakeTime;
 
-  /* The string to print out is passed in via the parameter.  Cast this to a
-  character pointer. */
+  /* 参数转换成字符串指针. */
   pcTaskName = ( char * ) pvParameters;
 
-  /* The xLastWakeTime variable needs to be initialized with the current tick
+  /*  xLastWakeTime 变量需要用当前tick计数值进行初始化，我们只需要在这里访问这个变量一次，
+以后将由API函数 vTaskDelayUntil（）自动管理
+    The xLastWakeTime variable needs to be initialized with the current tick
   count.  Note that this is the only time we access this variable.  From this
   point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
-  API function. */
+  API function */
   xLastWakeTime = xTaskGetTickCount();
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 无限循环. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /* 打印任务名. */
     vPrintString( pcTaskName );
-
-    /* We want this task to execute exactly every 250 milliseconds.  As per
+   /*我们希望此任务每250毫秒执行一次。 按照
+     vTaskDelay（）函数，时间以ticks为单位测量，而
+     portTICK_PERIOD_MS常量用于将其转换为毫秒。
+     xLastWakeTime在vTaskDelayUntil（）中自动更新，因此不会
+     必须通过此任务代码更新。
+    We want this task to execute exactly every 250 milliseconds.  As per
     the vTaskDelay() function, time is measured in ticks, and the
     portTICK_PERIOD_MS constant is used to convert this to milliseconds.
     xLastWakeTime is automatically updated within vTaskDelayUntil() so does not
-    have to be updated by this task code. */
+    have to be updated by this task code. 
+     */
+
     vTaskDelayUntil( &xLastWakeTime, ( 250 / portTICK_PERIOD_MS ) );
   }
 }

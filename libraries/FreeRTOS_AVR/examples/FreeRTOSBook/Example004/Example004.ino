@@ -54,12 +54,12 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The task function. */
+/* 任务函数. */
 void vTaskFunction( void *pvParameters );
 
-/* Define the strings that will be passed in as the task parameters.  These are
-defined const and off the stack to ensure they remain valid when the tasks are
-executing. */
+/* 
+定义传递给任务的参数， 要定义为const模式,不使用堆栈，以便任务能够正确的运行。
+ */
 const char *pcTextForTask1 = "Task 1 is running\r\n";
 const char *pcTextForTask2 = "Task 2 is running\t\n";
 
@@ -68,14 +68,13 @@ const char *pcTextForTask2 = "Task 2 is running\t\n";
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create the first task at priority 1... */
+  /* 建立第一个任务，优先级=1... */
   xTaskCreate( vTaskFunction, "Task 1", 200, (void*)pcTextForTask1, 1, NULL );
 
-  /* ... and the second task at priority 2.  The priority is the second to
-  last parameter. */
+  /* 建立第二个任务，优先级=2,优先级在倒数第二个参数. */
   xTaskCreate( vTaskFunction, "Task 2", 200, (void*)pcTextForTask2, 2, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 执行任务调度. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -87,20 +86,18 @@ void vTaskFunction( void *pvParameters )
 {
 char *pcTaskName;
 
-  /* The string to print out is passed in via the parameter.  Cast this to a
-  character pointer. */
+  /* 参数转换为字符串指针. */
   pcTaskName = ( char * ) pvParameters;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 无限循环任务. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /* 打印任务名. */
     vPrintString( pcTaskName );
 
-    /* Delay for a period.  This time we use a call to vTaskDelay() which
-    puts the task into the Blocked state until the delay period has expired.
-    The delay period is specified in 'ticks'. */
-    vTaskDelay( 250 / portTICK_PERIOD_MS );
+    /*延迟一段时间。 这次我们使用对vTaskDelay（）的调用将任务置于阻塞状态，直到延迟时间到期。
+     延迟周期在“ticks”中指定。*/
+    vTaskDelay( 250 / portTICK_PERIOD_MS ); //250ms
   }
 }
 //------------------------------------------------------------------------------

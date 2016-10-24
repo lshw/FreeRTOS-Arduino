@@ -58,25 +58,29 @@
 #define mainSENDER_1    1
 #define mainSENDER_2    2
 
-/* The tasks to be created.  Two instances are created of the sender task while
+/*要被创建的Task。2个发送任务的实例，一个接收任务的实例
+ The tasks to be created.  Two instances are created of the sender task while
 only a single instance is created of the receiver task. */
 static void vSenderTask( void *pvParameters );
 static void vReceiverTask( void *pvParameters );
 
 /*-----------------------------------------------------------*/
 
-/* Declare a variable of type QueueHandle_t.  This is used to store the queue
+/*定义一个变量，用于存储队列句柄，3个任务都可以访问它
+ Declare a variable of type QueueHandle_t.  This is used to store the queue
 that is accessed by all three tasks. */
 QueueHandle_t xQueue;
 
-/* Define the structure type that will be passed on the queue. */
+/* 定义一个类，用于发送到队列
+ Define the structure type that will be passed on the queue. */
 typedef struct
 {
   unsigned char ucValue;
   unsigned char ucSource;
 } xData;
 
-/* Declare two variables of type xData that will be passed on the queue. */
+/* 类xData的2个实例，用于发送到队列中。作为任务参数，必须是const的。
+Declare two variables of type xData that will be passed on the queue. */
 static const xData xStructsToSend[ 2 ] =
 {
   { 100, mainSENDER_1 }, /* Used by Sender1. */
@@ -86,12 +90,14 @@ static const xData xStructsToSend[ 2 ] =
 void setup( void )
 {
   Serial.begin(9600);
-    /* The queue is created to hold a maximum of 3 structures of type xData. */
+    /* 定义一个队列，可以放3个xData类
+     The queue is created to hold a maximum of 3 structures of type xData. */
     xQueue = xQueueCreate( 3, sizeof( xData ) );
 
   if( xQueue != NULL )
   {
-    /* Create two instances of the task that will write to the queue.  The
+    /* 建立2个任务，用来把类实例发送到队列
+    Create two instances of the task that will write to the queue.  The
     parameter is used to pass the structure that the task should write to the
     queue, so one task will continuously send xStructsToSend[ 0 ] to the queue
     while the other task will continuously send xStructsToSend[ 1 ].  Both
@@ -99,19 +105,22 @@ void setup( void )
     xTaskCreate( vSenderTask, "Sender1", 200, ( void * ) &( xStructsToSend[ 0 ] ), 2, NULL );
     xTaskCreate( vSenderTask, "Sender2", 200, ( void * ) &( xStructsToSend[ 1 ] ), 2, NULL );
 
-    /* Create the task that will read from the queue.  The task is created with
+    /* 建立一个任务， 用于从类实例队列取数
+    Create the task that will read from the queue.  The task is created with
     priority 1, so below the priority of the sender tasks. */
     xTaskCreate( vReceiverTask, "Receiver", 200, NULL, 1, NULL );
 
-    /* Start the scheduler so the created tasks start executing. */
+    /* 开始运行调度 
+    Start the scheduler so the created tasks start executing. */
     vTaskStartScheduler();
   }
   else
   {
-    /* The queue could not be created. */
+    /* 建立队列出错， The queue could not be created. */
   }
 
-    /* If all is well we will never reach here as the scheduler will now be
+    /* 出错了才会运行到这里。
+    If all is well we will never reach here as the scheduler will now be
     running the tasks.  If we do reach here then it is likely that there was
     insufficient heap memory available for a resource to be created. */
   for( ;; );
@@ -127,13 +136,16 @@ const TickType_t xTicksToWait = 100 / portTICK_PERIOD_MS;
   /* As per most tasks, this task is implemented within an infinite loop. */
   for( ;; )
   {
-    /* The first parameter is the queue to which data is being sent.  The
+    /* 第一个参数， 是要发送到的队列句柄.
+    The first parameter is the queue to which data is being sent.  The
     queue was created before the scheduler was started, so before this task
     started to execute.
 
+    第二个参数是数据
     The second parameter is the address of the structure being sent.  The
     address is passed in as the task parameter.
 
+     第三个参数是阻塞时间
     The third parameter is the Block time - the time the task should be kept
     in the Blocked state to wait for space to become available on the queue
     should the queue already be full.  A block time is specified as the queue
@@ -143,13 +155,14 @@ const TickType_t xTicksToWait = 100 / portTICK_PERIOD_MS;
 
     if( xStatus != pdPASS )
     {
-      /* We could not write to the queue because it was full - this must
+      /* 失败
+      We could not write to the queue because it was full - this must
       be an error as the receiving task should make space in the queue
       as soon as both sending tasks are in the Blocked state. */
       vPrintString( "Could not send to the queue.\r\n" );
     }
 
-    /* Allow the other sender task to execute. */
+    /* 让其它任务可以执行 Allow the other sender task to execute. */
     taskYIELD();
   }
 }
@@ -164,7 +177,8 @@ portBASE_TYPE xStatus;
   /* This task is also defined within an infinite loop. */
   for( ;; )
   {
-    /* As this task only runs when the sending tasks are in the Blocked state,
+    /* 由于本任务只在发送已经阻塞的情况下执行，所以总是阻塞的。3是队列长度
+    As this task only runs when the sending tasks are in the Blocked state,
     and the sending tasks only block when the queue is full, this task should
     always find the queue to be full.  3 is the queue length. */
     if( uxQueueMessagesWaiting( xQueue ) != 3 )
@@ -172,14 +186,17 @@ portBASE_TYPE xStatus;
       vPrintString( "Queue should have been full!\r\n" );
     }
 
-    /* The first parameter is the queue from which data is to be received.  The
+    /* 第一个参数是队列
+    The first parameter is the queue from which data is to be received.  The
     queue is created before the scheduler is started, and therefore before this
     task runs for the first time.
 
+    第二个参数是数据地址。
     The second parameter is the buffer into which the received data will be
     placed.  In this case the buffer is simply the address of a variable that
     has the required size to hold the received structure.
 
+    最后一个参数是阻塞时间ms
     The last parameter is the block time - the maximum amount of time that the
     task should remain in the Blocked state to wait for data to be available
     should the queue already be empty.  A block time is not necessary as this
@@ -188,7 +205,8 @@ portBASE_TYPE xStatus;
 
     if( xStatus == pdPASS )
     {
-      /* Data was successfully received from the queue, print out the received
+      /*成功获取数值
+      Data was successfully received from the queue, print out the received
       value and the source of the value. */
       if( xReceivedStructure.ucSource == mainSENDER_1 )
       {
@@ -201,7 +219,8 @@ portBASE_TYPE xStatus;
     }
     else
     {
-      /* We did not receive anything from the queue.  This must be an error
+      /* 没有收到数据， 这里肯定出错了，因为，只有队列满了，才会运行接收任务
+      We did not receive anything from the queue.  This must be an error
       as this task should only run when the queue is full. */
       vPrintString( "Could not receive from the queue.\r\n" );
     }

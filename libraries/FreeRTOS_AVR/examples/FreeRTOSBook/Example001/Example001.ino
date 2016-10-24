@@ -54,10 +54,10 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* Used as a loop counter to create a very crude delay. */
+/* 使用loop计数， 建立一个粗略的延迟 . */
 #define mainDELAY_LOOP_COUNT  400000 // ( 0xffffff )
 
-/* The task functions. */
+/* 任务函数. */
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
 
@@ -66,23 +66,22 @@ void vTask2( void *pvParameters );
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create one of the two tasks. */
-  xTaskCreate(  vTask1,   /* Pointer to the function that implements the task. */
-    "Task 1", /* Text name for the task.  This is to facilitate debugging only. */
-    200,    /* Stack depth - most small microcontrollers will use much less stack than this. */
-    NULL,   /* We are not using the task parameter. */
-    1,      /* This task will run at priority 1. */
-    NULL );   /* We are not using the task handle. */
+  /* 建立第一个任务. */
+  xTaskCreate(  vTask1,   /* 任务函数指针. */
+    "Task 1", /* 任务的名字， 只有debuger用到它. */
+    200,    /* 任务的堆栈大小. */
+    NULL,   /* 任务函数的参数， 我们这里不用参数. */
+    1,      /* 任务优先级=1. */
+    NULL );   /* 任务句柄，我们这里不使用. */
 
-  /* Create the other task in exactly the same way. */
+  /* 建立第二个任务. */
   xTaskCreate( vTask2, "Task 2", 200, NULL, 1, NULL );
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 启动调度程序，使我们的任务开始执行. */
   vTaskStartScheduler();
 
-  /* If all is well we will never reach here as the scheduler will now be
-  running.  If we do reach here then it is likely that there was insufficient
-  heap available for the idle task to be created. */
+  /* 如果一切顺利，我们永远不会到达这里，因为调度器会一直循环运行。 
+如果我们到达这里，那么很可能堆栈不够用来建立任务. */
   for( ;; );
 //  return 0;
 }
@@ -93,18 +92,16 @@ void vTask1( void *pvParameters )
 const char *pcTaskName = "Task 1 is running\r\n";
 volatile unsigned long ul;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 大部分的任务是无限循环的. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /*  打印出任务名字. */
     vPrintString( pcTaskName );
 
-    /* Delay for a period. */
+    /* 延迟一会儿. */
     for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
     {
-      /* This loop is just a very crude delay implementation.  There is
-      nothing to do in here.  Later exercises will replace this crude
-      loop with a proper delay/sleep function. */
+      /* 一个简单的循环， 以后，我们将用 delay/sleep 来实现. */
     }
   }
 }
@@ -115,18 +112,16 @@ void vTask2( void *pvParameters )
 const char *pcTaskName = "Task 2 is running\r\n";
 volatile unsigned long ul;
 
-  /* As per most tasks, this task is implemented in an infinite loop. */
+  /* 大部分的任务是无限循环的. */
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /*  打印出任务名字. */
     vPrintString( pcTaskName );
 
-    /* Delay for a period. */
+    /* 延迟一会儿. */
     for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
     {
-      /* This loop is just a very crude delay implementation.  There is
-      nothing to do in here.  Later exercises will replace this crude
-      loop with a proper delay/sleep function. */
+      /* 一个简单的循环， 以后，我们将用 delay/sleep 来实现. */
     }
   }
 }

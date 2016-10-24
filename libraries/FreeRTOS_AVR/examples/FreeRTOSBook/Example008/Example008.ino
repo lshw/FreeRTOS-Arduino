@@ -54,11 +54,11 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The two task functions. */
+/* 2个任务函数. */
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
 
-/* Used to hold the handle of Task2. */
+/* 用于保存任务2的句柄. */
 TaskHandle_t xTask2Handle;
 
 /*-----------------------------------------------------------*/
@@ -66,20 +66,19 @@ TaskHandle_t xTask2Handle;
 void setup( void )
 {
   Serial.begin(9600);
-  /* Create the first task at priority 2.  This time the task parameter is
+  /* 创建优先级为2的第一个任务。此时任务参数为未使用(NULL)。 任务句柄也不使用(NULL)。
+Create the first task at priority 2.  This time the task parameter is
   not used and is set to NULL.  The task handle is also not used so likewise
   is also set to NULL. */
   xTaskCreate( vTask1, "Task 1", 200, NULL, 2, NULL );
-          /* The task is created at priority 2 ^. */
+       /* The task is created at priority 2 ^. */
 
-  /* Create the second task at priority 1 - which is lower than the priority
-  given to Task1.  Again the task parameter is not used so is set to NULL -
-  BUT this time we want to obtain a handle to the task so pass in the address
-  of the xTask2Handle variable. */
+  /* 创建优先级为1的第二个任务 - 优先级低于任务1。 同样，不使用任务参数，因此设置为NULL - 
+   但是这次我们要获取任务的句柄，所以传入变量地址 . */
   xTaskCreate( vTask2, "Task 2", 200, NULL, 1, &xTask2Handle );
-         /* The task handle is the last parameter ^^^^^^^^^^^^^ */
+                            /* 任务句柄是最后一个参数 ^^^^^^^^^^^^^ */
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 开始任务调度. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -91,26 +90,34 @@ void vTask1( void *pvParameters )
 {
 unsigned portBASE_TYPE uxPriority;
 
-  /* This task will always run before Task2 as it has the higher priority.
+  /* 此任务将始终在Task2之前运行，因为它具有较高的优先级。
+   任务1和任务2都不是阻塞的，因此两者都将始终在运行或就绪状态
+  This task will always run before Task2 as it has the higher priority.
   Neither Task1 nor Task2 ever block so both will always be in either the
   Running or the Ready state.
-
+  
+  传入NULL参数，查询本任务的优先级 
   Query the priority at which this task is running - passing in NULL means
   "return our own priority". */
   uxPriority = uxTaskPriorityGet( NULL );
 
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /* 打印任务名字. */
     vPrintString( "Task1 is running\r\n" );
 
-    /* Setting the Task2 priority above the Task1 priority will cause
+    /* 
+    将Task2优先级设置为高于Task1优先级将导致任务2立即开始运行
+（因为任务2在2个任务中有更高的优先级）。
+    Setting the Task2 priority above the Task1 priority will cause
     Task2 to immediately start running (as then Task2 will have the higher
     priority of the    two created tasks). */
     vPrintString( "About to raise the Task2 priority\r\n" );
     vTaskPrioritySet( xTask2Handle, ( uxPriority + 1 ) );
 
-    /* Task1 will only run when it has a priority higher than Task2.
+    /* Task1只有在其优先级高于Task2时才会运行。
+     因此，Task2必须已经执行并将其自身优先级设置为0。
+    Task1 will only run when it has a priority higher than Task2.
     Therefore, for this task to reach this point Task2 must already have
     executed and set its priority back down to 0. */
   }
@@ -122,23 +129,31 @@ void vTask2( void *pvParameters )
 {
 unsigned portBASE_TYPE uxPriority;
 
-  /* Task1 will always run before this task as Task1 has the higher priority.
+  /* 此任务将始终在Task2之前运行，因为它具有较高的优先级。
+   任务1和任务2都不是阻塞的，因此两者都将始终在运行或就绪状态
+  Task1 will always run before this task as Task1 has the higher priority.
   Neither Task1 nor Task2 ever block so will always be in either the
   Running or the Ready state.
 
+
+   传入NULL参数，查询本任务的优先级 
   Query the priority at which this task is running - passing in NULL means
   "return our own priority". */
   uxPriority = uxTaskPriorityGet( NULL );
 
   for( ;; )
   {
-    /* For this task to reach this point Task1 must have already run and
+    /* 要想这个任务运行，Task1必须已经运行和设置Task2的优先级高于Task1。
+    For this task to reach this point Task1 must have already run and
     set the priority of this task higher than its own.
 
+    显示任务名
     Print out the name of this task. */
     vPrintString( "Task2 is running\r\n" );
 
-    /* Set our priority back down to its original value.  Passing in NULL
+    /* 将优先级设置为原始值， 以便Task1可以运行，传入NULL参数，意味着修改自身任务的优先级
+
+    Set our priority back down to its original value.  Passing in NULL
     as the task handle means "change our own priority".  Setting the
     priority below that of Task1 will cause Task1 to immediately start
     running again. */

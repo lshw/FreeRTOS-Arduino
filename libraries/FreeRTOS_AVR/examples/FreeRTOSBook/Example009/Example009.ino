@@ -54,11 +54,11 @@
 /* Demo includes. */
 #include "basic_io_avr.h"
 
-/* The two task functions. */
+/* 2个Task函数. */
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
 
-/* Used to hold the handle of Task2. */
+/* 用于保存Task2的句柄. */
 TaskHandle_t xTask2Handle;
 
 /*-----------------------------------------------------------*/
@@ -66,15 +66,14 @@ TaskHandle_t xTask2Handle;
 void setup( void )
 {
   // Insure malloc works in tasks
+  //确保 malloc 在tasks中可以工作
   __malloc_heap_end = (char*)RAMEND;
   Serial.begin(9600);
-  /* Create the first task at priority 1.  This time the task parameter is
-  not used and is set to NULL.  The task handle is also not used so likewise
-  is also set to NULL. */
+  /* 建立第一个任务，优先级=1 不使用句柄. */
   xTaskCreate( vTask1, "Task 1", 200, NULL, 1, NULL );
           /* The task is created at priority 1 ^. */
 
-  /* Start the scheduler so our tasks start executing. */
+  /* 开始调度. */
   vTaskStartScheduler();
 
   for( ;; );
@@ -88,16 +87,21 @@ const TickType_t xDelay100ms = 100 / portTICK_PERIOD_MS;
 
   for( ;; )
   {
-    /* Print out the name of this task. */
+    /* 打印任务名. */
     vPrintString( "Task1 is running\r\n" );
 
-    /* Create task 2 at a higher priority.  Again the task parameter is not
+    /* 以更高的优先级创建任务2。 任务参数无 ，但是这次我们要在保存任务句柄到变量xTask2Handle所在的地址
+
+    Create task 2 at a higher priority.  Again the task parameter is not
     used so is set to NULL - BUT this time we want to obtain a handle to the
     task so pass in the address of the xTask2Handle variable. */
     xTaskCreate( vTask2, "Task 2", 200, NULL, 2, &xTask2Handle );
        /* The task handle is the last parameter ^^^^^^^^^^^^^ */
 
-    /* Task2 has/had the higher priority, so for Task1 to reach here Task2
+    /* 新建的Task2具有更高的优先级，因此，要想回到Task1,Task2必须被运行， 并删除自身Task2
+
+    延迟100ms;
+    Task2 has/had the higher priority, so for Task1 to reach here Task2
     must have already executed and deleted itself.  Delay for 100
     milliseconds. */
     vTaskDelay( xDelay100ms );
@@ -108,7 +112,10 @@ const TickType_t xDelay100ms = 100 / portTICK_PERIOD_MS;
 
 void vTask2( void *pvParameters )
 {
-  /* Task2 does nothing but delete itself.  To do this it could call vTaskDelete()
+  /*
+  Task2 除了删除自己以外啥也不干，它只需要用NULL做参数就可以删除自己，用xTask2Handle做参数， 
+   纯粹为了演示目的
+  Task2 does nothing but delete itself.  To do this it could call vTaskDelete()
   using a NULL parameter, but instead and purely for demonstration purposes it
   instead calls vTaskDelete() with its own task handle. */
   vPrintString( "Task2 is running and about to delete itself\r\n" );
